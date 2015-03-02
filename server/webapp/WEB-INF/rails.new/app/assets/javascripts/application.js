@@ -44,4 +44,6 @@
 //= require "micro_content_popup.js"
 //= require "ajax_popup_handler.js"
 //= require "compare_pipelines.js"
+//= require "angular/pipeline/app.js"
+
 //= require_directory .

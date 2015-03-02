@@ -16,38 +16,33 @@
 
 package com.thoughtworks.go.server.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.naming.NamingException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.thoughtworks.go.config.CaseInsensitiveString;
 import com.thoughtworks.go.config.PipelineConfig;
 import com.thoughtworks.go.domain.PipelinePauseInfo;
 import com.thoughtworks.go.i18n.Localizer;
-import com.thoughtworks.go.util.json.JsonHelper;
-import com.thoughtworks.go.util.json.JsonMap;
 import com.thoughtworks.go.presentation.pipelinehistory.PipelineInstanceModels;
-import static com.thoughtworks.go.server.controller.actions.JsonAction.jsonFound;
-import static com.thoughtworks.go.server.controller.actions.JsonAction.jsonNotAcceptable;
-
 import com.thoughtworks.go.server.presentation.models.PipelineHistoryJsonPresentationModel;
-import com.thoughtworks.go.server.service.GoConfigService;
-import com.thoughtworks.go.server.service.PipelineHistoryService;
-import com.thoughtworks.go.server.service.PipelinePauseService;
-import com.thoughtworks.go.server.service.PipelineScheduleQueue;
-import com.thoughtworks.go.server.service.SchedulingCheckerService;
-import com.thoughtworks.go.server.service.SecurityService;
+import com.thoughtworks.go.server.service.*;
 import com.thoughtworks.go.server.service.result.ServerHealthStateOperationResult;
 import com.thoughtworks.go.server.util.Pagination;
 import com.thoughtworks.go.server.util.UserHelper;
+import com.thoughtworks.go.util.json.JsonHelper;
+import com.thoughtworks.go.util.json.JsonMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.naming.NamingException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.thoughtworks.go.server.controller.actions.JsonAction.jsonFound;
+import static com.thoughtworks.go.server.controller.actions.JsonAction.jsonNotAcceptable;
 
 @Controller
 public class PipelineHistoryController {
@@ -79,10 +74,10 @@ public class PipelineHistoryController {
 
     @RequestMapping(value = "/pipeline/history", method = RequestMethod.GET)
     public ModelAndView list(@RequestParam("pipelineName")String pipelineName) throws Exception {
-        Map model = new HashMap();
+        Map<String,Object> model = new HashMap<String, Object>();
         model.put("pipelineName", pipelineName);
         model.put("l", localizer);
-        return new ModelAndView("pipeline/pipeline_history", model);
+        return new ModelAndView("pipeline/angular/pipeline_history", model);
     }
 
     @RequestMapping(value = "/**/pipelineHistory.json", method = RequestMethod.GET)
