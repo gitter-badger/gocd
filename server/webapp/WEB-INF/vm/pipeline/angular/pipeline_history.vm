@@ -32,16 +32,137 @@
     }
 </style>
 <![endif]-->
-<div ng-app="pipeline">
-    <div ng-controller="PipelineHistoryController">
-        <h1>{{heading}}</h1>
+
+<div id="yui-main">
+    <div class="yui-b" ng-app="pipeline">
+        <!-- breadcrumbs -->
+        #set($current_page="pipeline_history")
+        #set($pipelineName=$pipelineName)
+    ##        #parse("shared/_breadcrumbs.vm")
+        <!-- /breadcrumbs -->
+
+        #parse("shared/_page_intro_top.vm")
+        <p>This view shows you all build activity that has occured in your pipeline over time.
+            Click on a stage in the configuration panel to view activity only within that stage.
+            You can also manually approve stages from this screen to force the next stage to run.
+            <a class="more" target="_blank" title="Learn more from help documentation"
+               href="http://www.go.cd/documentation/user/current/navigation/pipeline_activity_page.html">more...</a>
+        </p>
+        #parse("shared/_page_intro_bottom.vm")
+        <!-- pipeline start -->
+
+        <div id="new-pipeline-history" class="container-in-body" ng-controller="PipelineHistoryController"
+             ng-init="loadHistory('$pipelineName')">
+            <div class="content_wrapper_outer" id="content_wrapper_outer_pipeline_history">
+                <div class='page_header'>
+                    <div class="entity_title" style="margin-bottom: 0;" id="pipeline_activity_header">
+                        <ul class="entity_title">
+                            <li class="last"><h1 id="page-title" class="entity_title" style="float: left;">
+                                {{pipelineName}}</h1>
+                            </li>
+                        </ul>
+                    <span class="pipeline-buttons" style="float:left;">
+                            <a ng-show="isPipelinePaused() && canPause()" href="javascript:void(0)"
+                               id="pause-${%data.pipelineName%}"
+                               onclick="pipelineActions.unpausePipeline('${%data.pipelineName%}', this);"
+                               class="link_as_button" title="Resume scheduling">
+                                <span>Unpause</span>
+                            </a>
+                            <a ng-show="isPipelinePaused() && !canPause()" href="javascript:void(0)"
+                               id="pause-${%data.pipelineName%}"
+                               class="link_as_button disabled">
+                                <span>Unpause</span>
+                            </a>
+                            <a ng-show="!isPipelinePaused() && canPause()" href="javascript:void(0)"
+                               id="pause-${%data.pipelineName%}"
+                               onclick="pipelineActions.pausePipeline('${%data.pipelineName%}', this);"
+                               class="link_as_button"
+                               title="Stop scheduling">
+                                <span>Pause</span>
+                            </a>
+                            <a ng-show="!isPipelinePaused() && !canPause()" href="javascript:void(0)"
+                               id="pause-${%data.pipelineName%}"
+                               onclick="pipelineActions.pausePipeline('${%data.pipelineName%}', this);"
+                               class="link_as_button disabled"
+                               title="Stop scheduling">
+                                <span>Pause</span>
+                            </a>
+                       </span>
+                    </div>
+                </div>
+                <table ng-repeat="group in data.groups" class="pipeline-history-group" cellpadding="0" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th class="" scope="col" style="visibility: hidden;">Pipeline label</th>
+                        <th class="column-header" scope="col" ng-repeat="stage in group.config.stages">
+                            <span>{{stage.name}}</span>
+                        </th>
+                        <th class="spacer" scope="col">&nbsp;</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-show="#[[$index]]# == 0 && displayForceBuildButton()">
+                        <th class="pipeline-name" scope="row">
+                            <div class="wrapper">
+                                <button ng-show="canForce()"
+                                        class="{if pipelineActions.shouldShowPipelineScheduleButtonAsSpinner(data)}submiting-force-run-pipeline{else}force-run-pipeline{/if}"
+                                        title="Trigger this pipeline"
+                                        onclick="pipelineActions.schedulePipelineInHistoryPage('${%data.pipelineName%}', this);">
+                                    Trigger
+                                </button>
+                                <button ng-show="!canForce()" class="force-run-pipeline-disabled"
+                                        title="Cannot trigger this pipeline">Trigger
+                                </button>
+                                <span class="pipeline-label" title="revision: ">{{data.nextLabel}}</span><br/>
+                            <span class="pipeline-start-time">
+                                <span class="friendly-time"></span>
+                            </span>
+                            </div>
+                        </th>
+                        <td ng-repeat="stage in group.config.stages">
+                            <div class="wrapper">
+                                <button ng-show="#[[$index]]# !=0"
+                                        class="disabled-${% pipelineHistoryPage.getApprovalType(group.config, stage_index) %}-gate"></button>
+                                <a class="empty-stage" href="javascript:void(0);"></a></div>
+                        </td>
+                        <td class="spacer">&nbsp;</td>
+                    </tr>
+                    <tr ng-repeat="pipeline in group.history">
+                        <th class="pipeline-name" scope="row">
+                            <div class="wrapper">
+                                <span class="pipeline-label"> <a>{{pipeline.label}}</a></span><br/>
+                            <span class="pipeline-info revision"
+                                  ng-title="pipeline.revision">revision: {{pipeline.revision}}</span><br/>
+                                <span class="pipeline-info">{{pipeline.modification_date}}</span><br/>
+                        <span>
+                                <a href="javascript:void(0)">{{pipeline.buildCauseBy}}</a>
+                        </span>
+                            </div>
+                        </th>
+                        <td ng-repeat="stage in pipeline.stages" ng-class="{'last-stage':\$last}">
+                            <div class="wrapper">
+                                <div ng-class="stageStatusStyle(stage.stageStatus)">
+                                    <img ng-show="stage.stageStatus == 'Cancelled'" alt=""
+                                         src="$req.getContextPath()/$concatenatedStageBarCancelledIconFilePath">
+                                </div>
+                        </td>
+                        <td class="spacer">&nbsp;</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 </div>
-</div>
+
+#set($previousPage = "pipelineHistoryPage.switchToPage('$pipelineName', paginator.currentPage - 1)")
+#set($nextPage = "pipelineHistoryPage.switchToPage('$pipelineName', paginator.currentPage + 1)")
+#set($page = "pipelineHistoryPage.switchToPage('$pipelineName', ${% page.pageNumber %})")
+#parse("shared/_pagination_jstemplate.vm")
 </div>
 
 <!-- end bd -->
 #parse("shared/_flash_message.vm")
-
 
 #parse("shared/_footer.vm")
