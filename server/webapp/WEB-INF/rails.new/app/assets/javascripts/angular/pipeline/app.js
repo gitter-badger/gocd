@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('pipeline', []).service('PipelineService', ['$http', function ($http) {
+angular.module('pipeline', ['angularMoment']).service('PipelineService', ['$http', function ($http) {
     return {
         getHistory: function (pipelineName) {
             //return the promise directly.
-            return $http.get(context_path("pipelineHistory.json?pipelineName=" + pipelineName))
+            return $http.get("/go/api/pipelines/" + pipelineName + "/history")
                 .then(function (result) {
                     //resolve the promise as the data
                     return result.data;
@@ -41,5 +41,17 @@ angular.module('pipeline', []).service('PipelineService', ['$http', function ($h
 
     $scope.stageStatusStyle = function(status){
         return status.toLowerCase() + "-stage"
+    }
+
+    $scope.revisionLabel = function(pipeline){
+        return pipeline.build_cause.material_revisions.first().modifications.first().revision;
+    }
+
+    $scope.triggerTime = function(pipeline) {
+        return pipeline.stages.first().jobs.first().scheduled_date;
+    }
+
+    $scope.triggerMessage = function(pipeline) {
+        return pipeline.build_cause.trigger_forced ? pipeline.build_cause.trigger_message: "Triggered by changes";
     }
 }]);

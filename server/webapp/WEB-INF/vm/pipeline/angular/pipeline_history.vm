@@ -90,18 +90,18 @@
                        </span>
                     </div>
                 </div>
-                <table ng-repeat="group in data.groups" class="pipeline-history-group" cellpadding="0" cellspacing="0">
+                <table class="pipeline-history-group" cellpadding="0" cellspacing="0">
                     <thead>
                     <tr>
                         <th class="" scope="col" style="visibility: hidden;">Pipeline label</th>
-                        <th class="column-header" scope="col" ng-repeat="stage in group.config.stages">
+                        <th class="column-header" scope="col" ng-repeat="stage in pipeline.stages">
                             <span>{{stage.name}}</span>
                         </th>
                         <th class="spacer" scope="col">&nbsp;</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-show="#[[$index]]# == 0 && displayForceBuildButton()">
+                    <tr ng-show="$index == 0 && displayForceBuildButton()">
                         <th class="pipeline-name" scope="row">
                             <div class="wrapper">
                                 <button ng-show="canForce()"
@@ -121,35 +121,55 @@
                         </th>
                         <td ng-repeat="stage in group.config.stages">
                             <div class="wrapper">
-                                <button ng-show="#[[$index]]# !=0"
+                                <button ng-show="$index != 0"
                                         class="disabled-${% pipelineHistoryPage.getApprovalType(group.config, stage_index) %}-gate"></button>
                                 <a class="empty-stage" href="javascript:void(0);"></a></div>
                         </td>
                         <td class="spacer">&nbsp;</td>
                     </tr>
-                    <tr ng-repeat="pipeline in group.history">
+                    <tr ng-repeat="pipeline in data.pipelines">
                         <th class="pipeline-name" scope="row">
                             <div class="wrapper">
-                                <span class="pipeline-label"> <a>{{pipeline.label}}</a></span><br/>
+                                <span class="pipeline-label"> <a>{{pipeline.name}}</a></span><br/>
                             <span class="pipeline-info revision"
-                                  ng-title="pipeline.revision">revision: {{pipeline.revision}}</span><br/>
-                                <span class="pipeline-info">{{pipeline.modification_date}}</span><br/>
-                        <span>
-                                <a href="javascript:void(0)">{{pipeline.buildCauseBy}}</a>
-                        </span>
+                                  ng-title="pipeline.revision">revision: {{revisionLabel(pipeline)}}</span><br/>
+                                <span am-time-ago="triggerTime(pipeline)" class="pipeline-info"></span><br/>
+                                <span>
+                                        <a ng-click="showChanges = !showChanges">{{triggerMessage(pipeline)}}</a>
+                                </span>
+
+                                <div ng-show="showChanges">
+                                    <table style="border: solid 1px;">
+                                        <tbody ng-repeat="material_revision in pipeline.build_cause.material_revisions">
+                                        <tr>
+                                            <th colspan="3">
+                                                {{material_revision.material.description}}
+                                            </th>
+                                        </tr>
+                                        <tr ng-repeat="modification in material_revision.modifications">
+                                            <td class="user">{{modification.user_name}}</td>
+                                            <td class="comment">{{modification.content}}</td>
+                                            <td class="revision">{{ modification.revision }}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </th>
-                        <td ng-repeat="stage in pipeline.stages" ng-class="{'last-stage':\$last}">
+                        <td ng-repeat="stage in pipeline.stages">
                             <div class="wrapper">
-                                <div ng-class="stageStatusStyle(stage.stageStatus)">
-                                    <img ng-show="stage.stageStatus == 'Cancelled'" alt=""
+                                <div ng-class="stageStatusStyle(stage.result)">
+                                    <img ng-show="stage.result == 'Cancelled'" alt=""
                                          src="$req.getContextPath()/$concatenatedStageBarCancelledIconFilePath">
                                 </div>
+                            </div>
                         </td>
                         <td class="spacer">&nbsp;</td>
+
                     </tr>
                     </tbody>
                 </table>
+                <div></div>
             </div>
 
         </div>
